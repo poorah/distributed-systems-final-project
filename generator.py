@@ -109,8 +109,10 @@ def send_additional_data():
 
 
 if __name__ == "__main__":
-    threading.Thread(target=send_additional_data, daemon=True).start()
+    #threading.Thread(target=send_additional_data, daemon=True).start()
     while True:
         data = generate_data()
         send_data(data)
+        print("data:")
+        print(data)
         time.sleep(random.uniform(1, 5))
