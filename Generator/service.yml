@@ -11,4 +11,4 @@ spec:
     - protocol: TCP
       port: 80    # Port exposed by the Service
       targetPort: 5000  # Port your container listens on
-  type: LoadBalancer  # For external access, or use 'NodePort' if LoadBalancer is unavailable
+  type: NodePort  # For external access, or use 'NodePort' if LoadBalancer is unavailable
