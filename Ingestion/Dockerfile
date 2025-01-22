@@ -6,13 +6,9 @@ WORKDIR /app
 COPY . /app
 
 # RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir flask requests numpy psutil
+RUN pip install --no-cache-dir requests
 
-EXPOSE 5000
+EXPOSE 5555
 
-COPY run.sh /app/run.sh
+CMD ["python", "ingestion.py"]
 
-RUN chmod +x /app/run.sh
-
-CMD ["/app/run.sh"]
- 
