@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: generator
+  labels:
+    app: generator
+spec:
+  replicas: 2  
+  selector:
+    matchLabels:
+      app: generator
+  template:
+    metadata:
+      labels:
+        app: generator
+    spec:
+      containers:
+      - name: generator-container
+        image: generator:latest  
+        imagePullPolicy: IfNotPresent 
+        ports:
+        - containerPort: 5000
+        env:
+        - name: FLASK_ENV
+          value: production
