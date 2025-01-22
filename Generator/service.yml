@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: generator-service
+  labels:
+    app: generator
+spec:
+  selector:
+    app: generator
+  ports:
+    - protocol: TCP
+      port: 80    # Port exposed by the Service
+      targetPort: 5000  # Port your container listens on
+  type: LoadBalancer  # For external access, or use 'NodePort' if LoadBalancer is unavailable
