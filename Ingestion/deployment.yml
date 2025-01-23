@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingestion-deployment
+  labels:
+    app: ingestion-app
+spec:
+  replicas: 1 # Number of pod replicas
+  selector:
+    matchLabels:
+      app: ingestion-app
+  template:
+    metadata:
+      labels:
+        app: ingestion-app
+    spec:
+      containers:
+      - name: ingestion-container
+        image: ingestion:latest # Replace with your Docker image name
+        imagePullPolicy: IfNotPresent 
+        ports:
+        - containerPort: 5555
+
