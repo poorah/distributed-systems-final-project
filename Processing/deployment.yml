@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: processing-deployment
+  labels:
+    app: processing
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: processing
+  template:
+    metadata:
+      labels:
+        app: processing
+    spec:
+      containers:
+        - name: processing-container
+          image: processing:latest 
+          ports:
+            - containerPort: 9092
+            - containerPort: 4040
+            - containerPort: 8080
+          env:
+            - name: SPARK_NO_DAEMONIZE
+              value: "1"
+            - name: SPARK_MASTER_HOST
+              value: "localhost"
+          volumeMounts:
+            - name: app-config
+              mountPath: /app/run.sh
+              subPath: run.sh
+          command: ["/bin/bash", "-c", "/app/run.sh"]
+      volumes:
+        - name: app-config
+          configMap:
+            name: processing-configmap
