@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-kafka-service
+  labels:
+    app: spark-kafka
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9092
+    targetPort: 9092
+    protocol: TCP
+    name: kafka
+  - port: 4040
+    targetPort: 4040
+    protocol: TCP
+    name: spark-ui
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: custom-port
+  selector:
+    app: spark-kafka
