@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-kafka-sms
+spec:
+  replicas: 1  # You can adjust based on your need
+  selector:
+    matchLabels:
+      app: spark-kafka-sms
+  template:
+    metadata:
+      labels:
+        app: spark-kafka-sms
+    spec:
+      containers:
+        - name: spark-kafka-sms
+          image: your_dockerhub_username/spark-kafka-sms:latest  # Replace with your Docker image
+          ports:
+            - containerPort: 8080  # Update with your port if necessary
+          env:
+            - name: KAFKA_BROKER
+              value: "kafka-broker:9092"  # Update with your Kafka broker address
+            - name: TWILIO_SID
+              valueFrom:
+                secretKeyRef:
+                  name: twilio-credentials
+                  key: TWILIO_SID
+            - name: TWILIO_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: twilio-credentials
+                  key: TWILIO_AUTH_TOKEN
+            - name: TWILIO_PHONE_NUMBER
+              valueFrom:
+                secretKeyRef:
+                  name: twilio-credentials
+                  key: TWILIO_PHONE_NUMBER
+            - name: RECIPIENT_PHONE_NUMBER
+              valueFrom:
+                secretKeyRef:
+                  name: twilio-credentials
+                  key: RECIPIENT_PHONE_NUMBER
