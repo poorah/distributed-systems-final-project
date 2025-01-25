@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-kafka-deployment
+  labels:
+    app: flask-kafka
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask-kafka
+  template:
+    metadata:
+      labels:
+        app: flask-kafka
+    spec:
+      containers:
+        - name: flask-kafka-container
+          image: your-dockerhub-username/flask-kafka:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "localhost:9092"
+            - name: KAFKA_TOPIC
+              value: "buysell-topic"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 5

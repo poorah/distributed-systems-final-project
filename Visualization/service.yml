@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-kafka-service
+  labels:
+    app: flask-kafka
+spec:
+  selector:
+    app: flask-kafka
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: NodePort
