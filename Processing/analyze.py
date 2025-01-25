@@ -53,11 +53,13 @@ output = parsed_stream \
     .agg(
         F.avg("closing_price").alias("MA"),
         ((F.avg("closing_price")+F.last("closing_price"))/2).alias("EMA"),
-        (100/((F.avg("high")/F.avg("low"))+1)).alias("RSI"),
+        (100-(100/((F.avg("high")/F.avg("low"))+1))).alias("RSI"),
         F.skewness("closing_price").alias("skewness"),
         F.stddev("closing_price").alias("stddev"),
         F.count("time").alias("count")
     ) \
+    .withColumn("buy_signal", (F.col("RSI") < 50).cast("int")) \
+    .withColumn("sell_signal", (F.col("RSI") > 50.2).cast("int")) \
     .orderBy(F.col("window.start"), "stock_symbol")
 
 # # Select the required columns
@@ -72,6 +74,27 @@ query = output \
     .trigger(processingTime="10 seconds") \
     .format("console") \
     .start()
+    
+import tempfile
+
+# signal_stream = output \
+#     .select("stock_symbol", "window.start", "MA", "EMA", "RSI", "skewness", "stddev", "count") \
+#     .withColumn("buy_signal", (F.col("RSI") < 30).cast("int")) \
+#     .withColumn("sell_signal", (F.col("RSI") > 70).cast("int")) 
+
+# ارسال داده‌ها به Kafka
+kafka_query = output \
+    .selectExpr("CAST(stock_symbol AS STRING) AS key", "to_json(struct(*)) AS value") \
+    .writeStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("topic", "signals-topic") \
+    .option("checkpointLocation", tempfile.TemporaryDirectory()) \
+    .outputMode("complete") \
+    .trigger(processingTime="10 seconds") \
+    .start()
+
 
 #Wait for the query to terminate (streaming continues)
 query.awaitTermination()
+# kafka_query.awaitTermination()
