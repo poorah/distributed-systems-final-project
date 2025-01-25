@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-postgres-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-postgres-consumer
+  template:
+    metadata:
+      labels:
+        app: kafka-postgres-consumer
+    spec:
+      containers:
+      - name: kafka-postgres-consumer
+        image: kafka-postgres-consumer:latest  # Replace with your image tag
+        ports:
+        - containerPort: 8080  # Expose any port if required
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-broker:9092"  # Kafka broker hostname
+        - name: PG_HOST
+          value: "postgres-db"  # PostgreSQL hostname
+        - name: PG_PORT
+          value: "5432"  # PostgreSQL port
+        - name: PG_DBNAME
+          value: "dsfinal"
+        - name: PG_USER
+          value: "pooya"
+        - name: PG_PASSWORD
+          value: "1234"
+      imagePullPolicy: ifNotPresent
