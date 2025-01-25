@@ -6,7 +6,7 @@ import os
 
 # Kafka Consumer Configuration
 KAFKA_BROKER = 'localhost:9092'  # Kafka broker address
-KAFKA_TOPIC = 'signals-topic'    # Kafka topic name
+KAFKA_TOPIC = 'buysell-topic'    # Kafka topic name
 GROUP_ID = 'my-consumer-group'   # Consumer group id
 
 # PostgreSQL Configuration

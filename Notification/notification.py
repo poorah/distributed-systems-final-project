@@ -11,7 +11,7 @@ spark = SparkSession.builder \
 
 # Set the Kafka server and topic
 kafka_server = "localhost:9092"  # Update with your Kafka server address
-topic = "signals-topic"  # The Kafka topic you want to read from
+topic = "buysell-topic"  # The Kafka topic you want to read from
 
 # Read data from Kafka
 kafka_stream = spark.readStream \
