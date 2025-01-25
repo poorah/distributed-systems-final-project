@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # اجرای server.py در پس‌زمینه
-python server.py &
+python3 server.py &
 
 # اجرای generator.py
-python generator.py
+python3 generator.py
