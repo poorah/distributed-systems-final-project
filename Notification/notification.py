@@ -25,7 +25,7 @@ messages = kafka_stream.selectExpr("CAST(value AS STRING) as message")
 
 # Step 2: Define function to send SMS
 def send_sms(message):
-    # Twilio credentials (replace with your credentials)
+    # Twilio credentials
     account_sid = "your_account_sid"
     auth_token = "your_auth_token"
     from_phone = "your_twilio_phone_number"
