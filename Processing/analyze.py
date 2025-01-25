@@ -1,9 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType, TimestampType, IntegerType
-from pyspark.sql.window import Window
 import os
-
 
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages org.apache.spark:spark-streaming-kafka-0-10_2.12:3.2.0,org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0 pyspark-shell'
 
@@ -38,15 +36,10 @@ parsed_stream = kafka_stream.selectExpr("CAST(value AS STRING)") \
     .withColumn("time", F.from_unixtime(F.col("data.timestamp"))) \
     .select("data.*", "time")
 
-# # Write the parsed data to the console
-# query = parsed_stream \
-#     .writeStream \
-#     .outputMode("append") \
-#     .format("console") \
-#     .start()
-
+# Convert timestamp to timestamp type
 parsed_stream = parsed_stream.withColumn("time", F.to_timestamp("time", "yyyy-MM-dd HH:mm:ss"))
 
+# Define the windowing operation and calculated columns
 output = parsed_stream \
     .withWatermark("time", "2 minutes") \
     .groupBy("stock_symbol", F.window("time", "1 minutes", "1 minutes")) \
@@ -59,42 +52,39 @@ output = parsed_stream \
         F.count("time").alias("count")
     ) \
     .withColumn("buy_signal", (F.col("RSI") < 50).cast("int")) \
-    .withColumn("sell_signal", (F.col("RSI") > 50.2).cast("int")) \
-    .orderBy(F.col("window.start"), "stock_symbol")
+    .withColumn("sell_signal", (F.col("RSI") > 50.2).cast("int"))
 
-# # Select the required columns
-# output = parsed_stream.select(
-#     "stock_symbol", "time", "closing_price", "ma", "ema", "rsi"
-# )
+# Prepare the data to send to Kafka
+kafka_output = output \
+    .selectExpr(
+        "CAST(stock_symbol AS STRING) AS key",  # Kafka key
+        "to_json(struct(*)) AS value"  # Convert entire row to JSON string
+    )
+
+# Define checkpoint location (change the path as needed)
+checkpoint_location_kafka = "/home/pooya/Desktop/distributed-systems-final-project/Processing/tmp"
+checkpoint_location_console = "/home/pooya/Desktop/distributed-systems-final-project/Processing/tmp"
+
+# Write the output to Kafka topic 'signals-topic'
+kafka_query = kafka_output \
+    .writeStream \
+    .outputMode("complete") \
+    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("topic", "buysell-topic") \
+    .option("checkpointLocation", checkpoint_location_kafka) \
+    .format("kafka") \
+    .start()
+print("Kafka write stream started.")
 
 # Write the output to the console in real-time with a 10-second trigger
-query = output \
+console_query = output \
     .writeStream \
     .outputMode("complete") \
     .trigger(processingTime="10 seconds") \
+    .option("checkpointLocation", checkpoint_location_console) \
     .format("console") \
     .start()
-    
-import tempfile
 
-# signal_stream = output \
-#     .select("stock_symbol", "window.start", "MA", "EMA", "RSI", "skewness", "stddev", "count") \
-#     .withColumn("buy_signal", (F.col("RSI") < 30).cast("int")) \
-#     .withColumn("sell_signal", (F.col("RSI") > 70).cast("int")) 
-
-# ارسال داده‌ها به Kafka
-kafka_query = output \
-    .selectExpr("CAST(stock_symbol AS STRING) AS key", "to_json(struct(*)) AS value") \
-    .writeStream \
-    .format("kafka") \
-    .option("kafka.bootstrap.servers", "localhost:9092") \
-    .option("topic", "signals-topic") \
-    .option("checkpointLocation", tempfile.TemporaryDirectory()) \
-    .outputMode("complete") \
-    .trigger(processingTime="10 seconds") \
-    .start()
-
-
-#Wait for the query to terminate (streaming continues)
-query.awaitTermination()
-# kafka_query.awaitTermination()
+# Wait for the termination of both streams
+kafka_query.awaitTermination()
+console_query.awaitTermination()
