@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: generator-service
+  name: flask-redis-service
   labels:
-    app: generator
+    app: flask-redis
 spec:
   selector:
-    app: generator
+    app: flask-redis
   ports:
     - protocol: TCP
-      port: 80    # Port exposed by the Service
-      targetPort: 5000  # Port your container listens on
-  type: NodePort  # For external access, or use 'NodePort' if LoadBalancer is unavailable
+      port: 80
+      targetPort: 5000
+  type: NodePort

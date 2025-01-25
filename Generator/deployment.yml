@@ -1,25 +1,42 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: generator
+  name: flask-redis-deployment
   labels:
-    app: generator
+    app: flask-redis
 spec:
-  replicas: 2  
+  replicas: 2
   selector:
     matchLabels:
-      app: generator
+      app: flask-redis
   template:
     metadata:
       labels:
-        app: generator
+        app: flask-redis
     spec:
       containers:
-      - name: generator-container
-        image: generator:latest  
-        imagePullPolicy: IfNotPresent 
-        ports:
-        - containerPort: 5000
-        env:
-        - name: FLASK_ENV
-          value: production
+        - name: flask-container
+          image: your-dockerhub-username/flask-redis:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+        - name: redis
+          image: redis:alpine
+          ports:
+            - containerPort: 6379

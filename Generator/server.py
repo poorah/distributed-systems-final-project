@@ -1,20 +1,24 @@
 from flask import Flask, request, jsonify
+import redis
+import json
 
 app = Flask(__name__)
 
-# لیست برای ذخیره داده‌های دریافت شده
-data_store = []
+# Configure Redis connection
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
 
+# Redis key to store data
+REDIS_KEY = "ingested_data"
 
 @app.route('/ingest', methods=['POST'])
 def ingest_data():
-    """مدیریت درخواست POST برای دریافت داده‌ها"""
+    """Handle POST request to ingest data."""
     try:
-        # استخراج داده‌های JSON از درخواست
+        # Extract JSON data from the request
         data = request.get_json()
         if data:
-            data_store.clear()
-            data_store.append(data)
+            # Store data in Redis
+            redis_client.set(REDIS_KEY, json.dumps(data))
             return jsonify({"message": "Data ingested successfully"}), 200
         else:
             return jsonify({"error": "Invalid data"}), 400
@@ -24,10 +28,14 @@ def ingest_data():
 
 @app.route('/ingest', methods=['GET'])
 def fetch_data():
-    """مدیریت درخواست GET برای ارسال داده‌ها"""
+    """Handle GET request to retrieve data."""
     try:
-        # بازگشت تمام داده‌های ذخیره‌شده
-        return jsonify(data_store), 200
+        # Fetch data from Redis
+        data = redis_client.get(REDIS_KEY)
+        if data:
+            return jsonify(json.loads(data)), 200
+        else:
+            return jsonify({"message": "No data found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
