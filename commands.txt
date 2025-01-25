@@ -17,3 +17,5 @@ python processing.py
 ~/kafka/bin/kafka-console-consumer.sh --topic trading-topic --bootstrap-server localhost:9092 --from-beginning
 
 spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.3 analyze.py
+
+python signals.py
